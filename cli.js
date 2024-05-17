@@ -3,6 +3,10 @@ import { hideBin } from 'yargs/helpers';
 import chalkTemplate from 'chalk-template';
 import testCommand from './commands/test.js';
 
+// Remarks from: Steve Kok
+// This code is copied and edited from https://github.com/near/near-cli/blob/master/bin/near-cli.js
+// I have checked the documentation of yargs and it seems that the code is correct.
+
 yargs(hideBin(process.argv))
     .strict()
     .scriptName('npm start')
