@@ -1,5 +1,3 @@
-// obsolete
-
 /* global Pear */
 import Hyperswarm from 'hyperswarm'; // Module for P2P networking and connecting peers
 import b4a from 'b4a'; // Module for buffer-to-string and vice-versa conversions

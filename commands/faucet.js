@@ -73,7 +73,7 @@ async function faucet(options) {
         return;
     }
 
-    const args = ['dev', 'pear/faucet'];
+    const args = ['dev', 'pear/faucet', options.accountId];
 
     const child = childProcess.spawn('pear', [...args], {
         stdio: 'pipe',

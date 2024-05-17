@@ -19,7 +19,7 @@ if (config.dev) {
     );
 }
 
-const [accountId] = config.args;
+const [topic, accountId] = config.args;
 const swarm = new Hyperswarm();
 
 // Unannounce the public key before exiting the process
@@ -31,59 +31,49 @@ const rl = readline.createInterface({
     output: new tty.WriteStream(1),
 });
 
-const peerList = {};
+let requestSent = false;
 
 // When there's a new connection, listen for new messages, and output them to the terminal
 swarm.on('connection', (peer) => {
-    const name = b4a.toString(peer.remotePublicKey, 'hex');
-    peerList[name] = peer;
-
     peer.once('close', () => delete peerList[name]);
-    peer.on('data', (data) => handlePeerData(name, data));
+    peer.on('data', (data) => handlePeerData(peer, data));
     peer.on('error', (e) => {
-        // do nothing
-    });
-    peer.write({
-        eventType: 'faucet',
-        accountId,
+        console.log('Error when connecting: ', e);
     });
 });
 
-await createRoom();
+await joinRoom(topic);
 
 rl.input.setMode(tty.constants.MODE_RAW); // Enable raw input mode for efficient key reading
 rl.on('data', (data) => {
-    console.log('data: ', data);
     processStdin(data);
     rl.prompt();
 });
 rl.prompt();
 
-async function createRoom() {
-    const topicBuffer = crypto.randomBytes(32);
+async function joinRoom(topicString) {
+    const topicBuffer = b4a.from(topicString, 'hex');
     const discovery = swarm.join(topicBuffer, { client: true, server: true });
     const topic = b4a.toString(topicBuffer, 'hex');
     await discovery.flushed();
-    console.log(
-        JSON.stringify({
-            eventType: 'roomCreated',
-            topic,
-        })
-    );
 }
 
-async function handlePeerData(name, data) {
+async function handlePeerData(peer, data) {
     try {
         const parsedData = JSON.parse(data);
 
-        if (parsedData.eventType === 'sponsor') {
+        if (parsedData.eventType === 'message') {
+            console.log(parsedData.message);
+        }
+
+        if (parsedData.eventType === 'faucet') {
             console.log(
-                JSON.stringify({
-                    eventType: 'sponsor',
-                    from: name,
-                    accountId: parsedData.accountId,
-                })
+                `Faucet account found: ${parsedData.accountId}, requesting funds from it...`
             );
+            peer.write({
+                eventType: 'sponsor',
+                accountId,
+            });
         }
     } catch (e) {
         //do nothing
@@ -91,20 +81,5 @@ async function handlePeerData(name, data) {
 }
 
 async function processStdin(data) {
-    try {
-        const parsedData = JSON.parse(data);
-
-        if (parsedData.eventType === 'message') {
-            const peer = peerList[parsedData.to];
-            peer.write(
-                JSON.stringify({
-                    eventType: 'message',
-                    from: accountId,
-                    message: parsedData.message,
-                })
-            );
-        }
-    } catch (e) {
-        //do nothing
-    }
+    // do nothing
 }
