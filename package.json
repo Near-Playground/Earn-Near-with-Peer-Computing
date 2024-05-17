@@ -20,6 +20,7 @@
     "bare-tty": "^3.3.1",
     "hypercore-crypto": "^3.4.1",
     "hyperswarm": "^4.7.14",
-    "pear-inspect": "^1.1.1"
+    "pear-inspect": "^1.1.1",
+    "yargs": "^17.7.2"
   }
 }
