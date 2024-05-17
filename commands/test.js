@@ -9,6 +9,8 @@ export default {
 async function test(options) {
     const args = ['dev', '.', ...(options.args ?? [])];
 
+    console.log(args);
+
     const child = childProcess.spawn('pear', [...args], {
         stdio: 'inherit',
     });
