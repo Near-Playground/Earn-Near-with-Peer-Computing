@@ -1,7 +1,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import chalkTemplate from 'chalk-template';
-import testCommand from './commands/test.js';
+import tutorialCommand from './commands/tutorial.js';
 
 // Remarks from: Steve Kok
 // This code is copied and edited from https://github.com/near/near-cli/blob/master/bin/near-cli.js
@@ -10,7 +10,7 @@ import testCommand from './commands/test.js';
 yargs(hideBin(process.argv))
     .strict()
     .scriptName('node cli.js')
-    .command(testCommand)
+    .command(tutorialCommand)
     .showHelpOnFail(true)
     .recommendCommands()
     .demandCommand(

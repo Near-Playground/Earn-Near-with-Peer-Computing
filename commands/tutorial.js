@@ -1,15 +1,13 @@
 import childProcess from 'child_process';
 
 export default {
-    command: 'test [args...]',
-    desc: 'Run pear dev with custom arguments.',
-    handler: test,
+    command: 'tutorial [args...]',
+    desc: 'Run pear terminal tutorial project with custom arguments.',
+    handler: tutorial,
 };
 
-async function test(options) {
-    const args = ['dev', '.', ...(options.args ?? [])];
-
-    console.log(args);
+async function tutorial(options) {
+    const args = ['dev', 'pear/tutorial', ...(options.args ?? [])];
 
     const child = childProcess.spawn('pear', [...args], {
         stdio: 'inherit',

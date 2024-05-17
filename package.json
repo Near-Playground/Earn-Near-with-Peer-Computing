@@ -2,26 +2,16 @@
     "name": "sharing-near-account",
     "main": "index.js",
     "type": "module",
-    "pear": {
-        "name": "sharing-near-account",
-        "type": "terminal"
-    },
     "license": "Apache-2.0",
     "devDependencies": {
         "brittle": "^3.0.0"
     },
     "scripts": {
-        "dev": "pear dev",
+        "postinstall": "cd pear/tutorial && npm install && cd ../..",
         "test": "brittle test/*.test.js"
     },
     "dependencies": {
-        "b4a": "^1.6.6",
-        "bare-readline": "^1.0.4",
-        "bare-tty": "^3.3.1",
         "chalk-template": "^1.1.0",
-        "hypercore-crypto": "^3.4.1",
-        "hyperswarm": "^4.7.14",
-        "pear-inspect": "^1.1.1",
         "yargs": "^17.7.2"
     }
 }
