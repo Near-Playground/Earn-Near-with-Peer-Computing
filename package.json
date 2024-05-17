@@ -7,11 +7,12 @@
         "brittle": "^3.0.0"
     },
     "scripts": {
-        "postinstall": "cd pear/tutorial && npm install && cd ../..",
+        "postinstall": "cd pear/faucet && npm install && cd ../../pear/tutorial && npm install && cd ../..",
         "test": "brittle test/*.test.js"
     },
     "dependencies": {
         "chalk-template": "^1.1.0",
+        "near-seed-phrase": "^0.2.0",
         "yargs": "^17.7.2"
     }
 }
