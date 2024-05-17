@@ -1,10 +1,12 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import chalkTemplate from 'chalk-template';
+import testCommand from './commands/test.js';
 
 yargs(hideBin(process.argv))
     .strict()
-    .scriptName('pear dev')
+    .scriptName('npm start')
+    .command(testCommand)
     .showHelpOnFail(true)
     .recommendCommands()
     .demandCommand(
