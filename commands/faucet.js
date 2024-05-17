@@ -1,5 +1,7 @@
 import childProcess from 'child_process';
 import { parseSeedPhrase } from 'near-seed-phrase';
+import * as nearApiJs from 'near-api-js';
+import BN from 'bn.js';
 
 export default {
     command: 'faucet <account-id>',
@@ -35,6 +37,42 @@ async function faucet(options) {
         secretKey = parseSeedPhrase(options.seedPhrase).secretKey;
     }
 
+    const keyPair = nearApiJs.utils.KeyPair.fromString(secretKey);
+    const publicKey = keyPair.getPublicKey().toString();
+
+    const keyStore = new nearApiJs.keyStores.InMemoryKeyStore();
+    await keyStore.setKey('testnet', options.accountId, keyPair);
+
+    const near = await nearApiJs.connect({
+        networkId: 'testnet',
+        nodeUrl: 'https://rpc.testnet.near.org',
+        keyStore,
+    });
+
+    const account = await near.account(options.accountId);
+
+    if ((await account.state()).amount === '0') {
+        console.log('Faucet account has no Near');
+        return;
+    }
+
+    const accessKeys = await account.getAccessKeys();
+    const matchedAccessKey = accessKeys.find(
+        (accessKey) => accessKey.public_key === publicKey
+    );
+
+    console.log('matchedAccessKey:', matchedAccessKey);
+
+    if (!matchedAccessKey) {
+        console.log('Faucet key is wrong.');
+        return;
+    }
+
+    if (matchedAccessKey.access_key.permission !== 'FullAccess') {
+        console.log('Faucet key does not have full access.');
+        return;
+    }
+
     const args = ['dev', 'pear/faucet'];
 
     const child = childProcess.spawn('pear', [...args], {
@@ -59,9 +97,7 @@ async function faucet(options) {
             }
 
             if (parsedData.eventType === 'sponsor') {
-                console.log(
-                    `Sponsor request from ${parsedData.from}, sending Near drop to ${parsedData.accountId}`
-                );
+                sendNearDrop(parsedData, child, near);
             }
         } catch (e) {
             console.error(e);
@@ -75,4 +111,34 @@ async function faucet(options) {
             console.error(`Process exited with code ${code}`);
         }
     });
+}
+
+async function sendNearDrop(parsedData, child, near) {
+    console.log(
+        `Sponsor request from ${parsedData.from}, sending Near drop to ${parsedData.accountId}`
+    );
+
+    child.stdin.write(
+        JSON.stringify({
+            eventType: 'message',
+            to: parsedData.from,
+            message: 'Sponsor request accepted. Sending Near drop...',
+        })
+    );
+
+    const response = await account.sendMoney(
+        parsedData.accountId,
+        // 0.001 Near, i.e. 1e21 yoctoNear
+        new BN('1000000000000000000000')
+    );
+
+    const transactionHash = response.transaction_outcome.id;
+
+    child.stdin.write(
+        JSON.stringify({
+            eventType: 'message',
+            to: parsedData.from,
+            message: `Near drop sent. Link: https://nearblocks.io/txns/${transactionHash}`,
+        })
+    );
 }
