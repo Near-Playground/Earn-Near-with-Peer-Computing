@@ -2,6 +2,7 @@ import childProcess from 'child_process';
 import { parseSeedPhrase } from 'near-seed-phrase';
 import * as nearApiJs from 'near-api-js';
 import BN from 'bn.js';
+import chalkTemplate from 'chalk-template';
 
 export default {
     command: 'faucet <account-id>',
@@ -51,11 +52,6 @@ async function faucet(options) {
 
     const account = await near.account(options.accountId);
 
-    if ((await account.state()).amount === '0') {
-        console.log('Faucet account has no Near');
-        return;
-    }
-
     const accessKeys = await account.getAccessKeys();
     const matchedAccessKey = accessKeys.find(
         (accessKey) => accessKey.public_key === publicKey
@@ -78,7 +74,7 @@ async function faucet(options) {
     });
 
     child.stdout.on('data', (dataBuffer) => {
-        const datas = dataBuffer.toString().trim().split('\n');
+        const datas = dataBuffer.toString().split('\n');
 
         datas.forEach((data) => processFaucetData(data, child, account));
     });
@@ -94,16 +90,13 @@ async function faucet(options) {
 
 async function sendNearDrop(parsedData, child, account) {
     console.log(
-        `Sponsor request from ${parsedData.from}, sending Near drop to ${parsedData.accountId}`
+        `\nSponsor request from ${parsedData.from}, sending Near drop to ${parsedData.accountId}`
     );
 
-    child.stdin.setEncoding('utf-8');
-    child.stdin.write(
-        JSON.stringify({
-            eventType: 'message',
-            to: parsedData.from,
-            message: 'Sponsor request accepted. Sending Near drop...',
-        }).concat('\r\n')
+    sendMessage(
+        parsedData.from,
+        chalkTemplate`{green [Faucet]} Sponsor request accepted. Sending Near drop...`,
+        child
     );
 
     const response = await account.sendMoney(
@@ -113,20 +106,30 @@ async function sendNearDrop(parsedData, child, account) {
     );
 
     const transactionHash = response.transaction_outcome.id;
+
     console.log(
-        `Near drop sent. Link: https://testnet.nearblocks.io/txns/${transactionHash}`
+        chalkTemplate`Near drop sent. Link: {blue https://testnet.nearblocks.io/txns/${transactionHash}}`
     );
 
+    sendMessage(
+        parsedData.from,
+        chalkTemplate`{green [Faucet]} Near drop sent. Link: {blue https://testnet.nearblocks.io/txns/${transactionHash}}`,
+        child
+    );
+}
+
+function sendMessage(peerName, message, child) {
+    child.stdin.setEncoding('utf-8');
     child.stdin.write(
         JSON.stringify({
             eventType: 'message',
-            to: parsedData.from,
-            message: `Near drop sent. Link: https://testnet.nearblocks.io/txns/${transactionHash}`,
+            to: peerName,
+            message,
         }).concat('\r\n')
     );
 }
 
-async function processFaucetData(data, child, account) {
+function processFaucetData(data, child, account) {
     try {
         const parsedData = JSON.parse(data);
 
@@ -134,16 +137,11 @@ async function processFaucetData(data, child, account) {
             console.log(parsedData.message);
         }
 
-        if (parsedData.eventType === 'debug') {
-            console.log('Pear Debug key:', parsedData.key);
-        }
-
         if (parsedData.eventType === 'roomCreated') {
             console.log(
-                'Faucet Room created, please ask other users to type this command to get Near from you:'
-            );
-            console.log(
-                `node cli.js claim ${parsedData.topic} stevekok.testnet`
+                chalkTemplate`\n
+Faucet Room created, please ask other users to type this command to get Near from you:
+{green node cli.js claim ${parsedData.topic} <account-id>}`
             );
         }
 
