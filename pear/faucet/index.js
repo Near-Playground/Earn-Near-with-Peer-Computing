@@ -58,7 +58,7 @@ async function createRoom() {
     );
 }
 
-async function handlePeerData(name, data) {
+function handlePeerData(name, data) {
     try {
         const parsedData = JSON.parse(data.toString());
 
@@ -76,7 +76,7 @@ async function handlePeerData(name, data) {
     }
 }
 
-async function processStdin(data) {
+function processStdin(data) {
     try {
         const parsedData = JSON.parse(data.toString());
 
