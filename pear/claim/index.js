@@ -11,12 +11,7 @@ if (config.dev) {
     const { Inspector } = await import('pear-inspect');
     const inspector = await new Inspector();
     const key = await inspector.enable();
-    console.log(
-        JSON.stringify({
-            eventType: 'debug',
-            key: key.toString('hex'),
-        })
-    );
+    console.log(`Debug with pear://runtime/devtools/${key.toString('hex')}`);
 }
 
 const [topic, accountId] = config.args;
@@ -35,7 +30,6 @@ let requestSent = false;
 
 // When there's a new connection, listen for new messages, and output them to the terminal
 swarm.on('connection', (peer) => {
-    peer.once('close', () => delete peerList[name]);
     peer.on('data', (data) => handlePeerData(peer, data));
     peer.on('error', (e) => {
         console.log('Error when connecting: ', e);
@@ -45,11 +39,7 @@ swarm.on('connection', (peer) => {
 await joinRoom(topic);
 
 rl.input.setMode(tty.constants.MODE_RAW); // Enable raw input mode for efficient key reading
-rl.on('data', (data) => {
-    processStdin(data);
-    rl.prompt();
-});
-rl.prompt();
+rl.on('data', processStdin);
 
 async function joinRoom(topicString) {
     const topicBuffer = b4a.from(topicString, 'hex');
@@ -60,20 +50,26 @@ async function joinRoom(topicString) {
 
 async function handlePeerData(peer, data) {
     try {
-        const parsedData = JSON.parse(data);
+        const parsedData = JSON.parse(data.toString());
 
         if (parsedData.eventType === 'message') {
             console.log(parsedData.message);
         }
 
         if (parsedData.eventType === 'faucet') {
+            if (requestSent) return;
+
+            requestSent = true;
+
             console.log(
                 `Faucet account found: ${parsedData.accountId}, requesting funds from it...`
             );
-            peer.write({
-                eventType: 'sponsor',
-                accountId,
-            });
+            peer.write(
+                JSON.stringify({
+                    eventType: 'sponsor',
+                    accountId,
+                })
+            );
         }
     } catch (e) {
         //do nothing

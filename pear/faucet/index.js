@@ -43,21 +43,19 @@ swarm.on('connection', (peer) => {
     peer.on('error', (e) => {
         // do nothing
     });
-    peer.write({
-        eventType: 'faucet',
-        accountId,
-    });
+
+    peer.write(
+        JSON.stringify({
+            eventType: 'faucet',
+            accountId,
+        })
+    );
 });
 
 await createRoom();
 
-rl.input.setMode(tty.constants.MODE_RAW); // Enable raw input mode for efficient key reading
-rl.on('data', (data) => {
-    console.log('data: ', data);
-    processStdin(data);
-    rl.prompt();
-});
-rl.prompt();
+rl.input.setMode(tty.constants.MODE_NORMAL); // Enable raw input mode for efficient key reading
+rl.on('data', processStdin);
 
 async function createRoom() {
     const topicBuffer = crypto.randomBytes(32);
@@ -74,7 +72,7 @@ async function createRoom() {
 
 async function handlePeerData(name, data) {
     try {
-        const parsedData = JSON.parse(data);
+        const parsedData = JSON.parse(data.toString());
 
         if (parsedData.eventType === 'sponsor') {
             console.log(
@@ -92,7 +90,7 @@ async function handlePeerData(name, data) {
 
 async function processStdin(data) {
     try {
-        const parsedData = JSON.parse(data);
+        const parsedData = JSON.parse(data.toString());
 
         if (parsedData.eventType === 'message') {
             const peer = peerList[parsedData.to];

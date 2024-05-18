@@ -61,8 +61,6 @@ async function faucet(options) {
         (accessKey) => accessKey.public_key === publicKey
     );
 
-    console.log('matchedAccessKey:', matchedAccessKey);
-
     if (!matchedAccessKey) {
         console.log('Faucet key is wrong.');
         return;
@@ -79,29 +77,10 @@ async function faucet(options) {
         stdio: 'pipe',
     });
 
-    child.stdout.on('data', (data) => {
-        try {
-            const parsedData = JSON.parse(data);
+    child.stdout.on('data', (dataBuffer) => {
+        const datas = dataBuffer.toString().trim().split('\n');
 
-            if (parsedData.eventType === 'debug') {
-                console.log('Pear Debug key:', parsedData.key);
-            }
-
-            if (parsedData.eventType === 'roomCreated') {
-                console.log(
-                    'Faucet Room created, please ask other users to type this command to get Near from you:'
-                );
-                console.log(
-                    `node cli.js claim ${parsedData.topic} <account-id>`
-                );
-            }
-
-            if (parsedData.eventType === 'sponsor') {
-                sendNearDrop(parsedData, child, near);
-            }
-        } catch (e) {
-            console.error(e);
-        }
+        datas.forEach((data) => processFaucetData(data, child, account));
     });
 
     child.on('exit', (code) => {
@@ -113,17 +92,18 @@ async function faucet(options) {
     });
 }
 
-async function sendNearDrop(parsedData, child, near) {
+async function sendNearDrop(parsedData, child, account) {
     console.log(
         `Sponsor request from ${parsedData.from}, sending Near drop to ${parsedData.accountId}`
     );
 
+    child.stdin.setEncoding('utf-8');
     child.stdin.write(
         JSON.stringify({
             eventType: 'message',
             to: parsedData.from,
             message: 'Sponsor request accepted. Sending Near drop...',
-        })
+        }).concat('\r\n')
     );
 
     const response = await account.sendMoney(
@@ -133,12 +113,44 @@ async function sendNearDrop(parsedData, child, near) {
     );
 
     const transactionHash = response.transaction_outcome.id;
+    console.log(
+        `Near drop sent. Link: https://testnet.nearblocks.io/txns/${transactionHash}`
+    );
 
     child.stdin.write(
         JSON.stringify({
             eventType: 'message',
             to: parsedData.from,
-            message: `Near drop sent. Link: https://nearblocks.io/txns/${transactionHash}`,
-        })
+            message: `Near drop sent. Link: https://testnet.nearblocks.io/txns/${transactionHash}`,
+        }).concat('\r\n')
     );
+}
+
+async function processFaucetData(data, child, account) {
+    try {
+        const parsedData = JSON.parse(data);
+
+        if (parsedData.eventType === 'log') {
+            console.log(parsedData.message);
+        }
+
+        if (parsedData.eventType === 'debug') {
+            console.log('Pear Debug key:', parsedData.key);
+        }
+
+        if (parsedData.eventType === 'roomCreated') {
+            console.log(
+                'Faucet Room created, please ask other users to type this command to get Near from you:'
+            );
+            console.log(
+                `node cli.js claim ${parsedData.topic} stevekok.testnet`
+            );
+        }
+
+        if (parsedData.eventType === 'sponsor') {
+            sendNearDrop(parsedData, child, account);
+        }
+    } catch (e) {
+        // do nothing
+    }
 }
