@@ -1,6 +1,8 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import chalkTemplate from 'chalk-template';
+import claimCommand from './commands/claim.js';
+import faucetCommand from './commands/faucet.js';
 import tutorialCommand from './commands/tutorial.js';
 
 // Remarks from: Steve Kok
@@ -10,6 +12,8 @@ import tutorialCommand from './commands/tutorial.js';
 yargs(hideBin(process.argv))
     .strict()
     .scriptName('node cli.js')
+    .command(claimCommand)
+    .command(faucetCommand)
     .command(tutorialCommand)
     .showHelpOnFail(true)
     .recommendCommands()
