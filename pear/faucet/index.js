@@ -7,18 +7,6 @@ import tty from 'bare-tty'; // Module to control terminal behavior
 
 const { teardown, config } = Pear; // Import configuration options and cleanup functions from Pear
 
-if (config.dev) {
-    const { Inspector } = await import('pear-inspect');
-    const inspector = await new Inspector();
-    const key = await inspector.enable();
-    console.log(
-        JSON.stringify({
-            eventType: 'debug',
-            key: key.toString('hex'),
-        })
-    );
-}
-
 const [accountId] = config.args;
 const swarm = new Hyperswarm();
 

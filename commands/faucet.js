@@ -134,10 +134,6 @@ async function processFaucetData(data, child, account) {
             console.log(parsedData.message);
         }
 
-        if (parsedData.eventType === 'debug') {
-            console.log('Pear Debug key:', parsedData.key);
-        }
-
         if (parsedData.eventType === 'roomCreated') {
             console.log(
                 'Faucet Room created, please ask other users to type this command to get Near from you:'
