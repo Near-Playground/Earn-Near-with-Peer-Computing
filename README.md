@@ -46,7 +46,7 @@ node cli.js
 
 ---
 
-# How to run this examples
+# How to run this example
 
 ## Step 1: Start a compute task host
 
