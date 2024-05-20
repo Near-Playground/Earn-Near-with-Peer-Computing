@@ -12,7 +12,7 @@ The advantages of using p2p and blockchain is that both the host and user will b
 
 # Preparation before running
 
-## Install Pear
+## Step 1: Install Pear
 
 This project needs `Pear` to be installed globally. `Pear` is a library to support peer to peer connections.
 
@@ -24,13 +24,13 @@ Verify that you have installed `Pear` successfully by running this terminal comm
 pear run pear://keet
 ```
 
-## Register some testnet account
+## Step 2: Register some testnet account
 
 Go to [mynearwallet testnet website](https://testnet.mynearwallet.com/) and register some testnet accounts.
 
 Remember to copy down the `seed phrase` while registering, it will be used in the examples.
 
-## Clone this project and run npm install
+## Step 3: Clone this project and run npm install
 
 Clone the project, then while inside the root of the project, run:
 
