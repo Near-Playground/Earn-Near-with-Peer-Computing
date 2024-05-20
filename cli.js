@@ -2,6 +2,8 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import chalkTemplate from 'chalk-template';
 import claimCommand from './commands/claim.js';
+import computeClientCommand from './commands/compute-client/index.js';
+import computeHostCommand from './commands/compute-host.js';
 import faucetCommand from './commands/faucet.js';
 import tutorialCommand from './commands/tutorial.js';
 
@@ -13,6 +15,8 @@ yargs(hideBin(process.argv))
     .strict()
     .scriptName('node cli.js')
     .command(claimCommand)
+    .command(computeClientCommand)
+    .command(computeHostCommand)
     .command(faucetCommand)
     .command(tutorialCommand)
     .showHelpOnFail(true)
