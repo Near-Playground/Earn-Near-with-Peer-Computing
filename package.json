@@ -7,12 +7,14 @@
         "brittle": "^3.0.0"
     },
     "scripts": {
-        "postinstall": "cd pear/claim && npm install && cd ../../pear/faucet && npm install && cd ../../pear/tutorial && npm install && cd ../..",
+        "postinstall": "cd pear/claim && npm install && cd ../../pear/compute-client && npm install && npm install && cd ../../pear/compute-host && npm install && cd ../../pear/faucet && npm install && cd ../../pear/tutorial && npm install && cd ../..",
         "test": "brittle test/*.test.js"
     },
     "dependencies": {
         "bn.js": "^5.2.1",
         "chalk-template": "^1.1.0",
+        "cli-progress": "^3.12.0",
+        "crypto": "^1.0.1",
         "near-api-js": "^4.0.1",
         "near-seed-phrase": "^0.2.0",
         "yargs": "^17.7.2"
